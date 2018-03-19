@@ -34,11 +34,25 @@ namespace BrainDump.Web
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(config => {
+            services.AddMvc(config =>
+            {
                 config.ModelBinderProviders.Insert(0, new Piranha.Manager.Binders.AbstractModelBinderProvider());
             });
+
+            //services.AddDbContext<Db>(options =>
+            //    options.UseSqlite("Filename=./App_Data/braindump-dev.db"));
+
+            /* NOTE: The app would crash without the appsettings.ConnectionStrings.json on root
+             * appsettings.ConnectionStrings.json
+             * {
+             *     "ConnectionStrings": {
+             *         "DefaultConnectionString": "Server=tcp:XXXX,1433;Initial Catalog=XXXX;Persist Security Info=False;User ID=XXXX;Password=XXXX;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+             *     }
+             * }
+             */
             services.AddDbContext<Db>(options =>
-                options.UseSqlite("Filename=./piranha.coreweb.db"));
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnectionString")));
+
             services.AddSingleton<IStorage, FileStorage>();
             services.AddSingleton<IImageProcessor, ImageSharpProcessor>();
             services.AddScoped<IDb, Db>();
@@ -87,7 +101,8 @@ namespace BrainDump.Web
             app.UsePiranhaSimpleSecurity();
             app.UsePiranha();
             app.UsePiranhaManager();
-            app.UseMvc(routes => {
+            app.UseMvc(routes =>
+            {
                 routes.MapRoute(name: "areaRoute",
                     template: "{area:exists}/{controller}/{action}/{id?}",
                     defaults: new { controller = "Home", action = "Index" });
